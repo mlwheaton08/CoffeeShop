@@ -9,6 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IBeanVarietyRepository, BeanVarietyRepository>();
+builder.Services.AddTransient<ICoffeeRepository, CoffeeRepository>();
 
 var app = builder.Build();
 
@@ -17,6 +18,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // Do not block requests while in development
+    app.UseCors(options =>
+    {
+        options.AllowAnyOrigin();
+        options.AllowAnyMethod();
+        options.AllowAnyHeader();
+    });
 }
 
 app.UseHttpsRedirection();
