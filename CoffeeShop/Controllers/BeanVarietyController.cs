@@ -1,6 +1,6 @@
-﻿using CoffeeShop.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using CoffeeShop.Models;
 using CoffeeShop.Repositories;
-using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeShop.Controllers
 {
@@ -14,14 +14,14 @@ namespace CoffeeShop.Controllers
             _beanVarietyRepository = beanVarietyRepository;
         }
 
-        // https:localhost:5001/api/beanvariety/
+        // https://localhost:5001/api/beanvariety/
         [HttpGet]
         public IActionResult Get()
         {
             return Ok(_beanVarietyRepository.GetAll());
         }
 
-        // https:localhost:5001/api/beanvariety/5
+        // https://localhost:5001/api/beanvariety/5
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -33,15 +33,15 @@ namespace CoffeeShop.Controllers
             return Ok(variety);
         }
 
-        // https:localhost:5001/api/beanvariety/
+        // https://localhost:5001/api/beanvariety/
         [HttpPost]
         public IActionResult Post(BeanVariety beanVariety)
         {
             _beanVarietyRepository.Add(beanVariety);
-            return CreatedAtAction("Post", new { id = beanVariety.Id }, beanVariety);
+            return CreatedAtAction("Get", new { id = beanVariety.Id }, beanVariety);
         }
 
-        // https:localhost:5001/api/beanvariety/5
+        // https://localhost:5001/api/beanvariety/5
         [HttpPut("{id}")]
         public IActionResult Put(int id, BeanVariety beanVariety)
         {
@@ -54,7 +54,7 @@ namespace CoffeeShop.Controllers
             return NoContent();
         }
 
-        // https:localhost:5001/api/beanvariety/5
+        // https://localhost:5001/api/beanvariety/5
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {

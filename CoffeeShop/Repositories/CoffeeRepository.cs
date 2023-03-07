@@ -1,46 +1,127 @@
 ﻿using CoffeeShop.Models;
+using Microsoft.Data.SqlClient;
 
 namespace CoffeeShop.Repositories;
 
 public class CoffeeRepository : ICoffeeRepository
 {
-    private static List<Coffee> _coffees = new List<Coffee>()
+    private readonly string _connectionString;
+    public CoffeeRepository(IConfiguration configuration)
     {
-        new Coffee() {Id = 1, Style = "Drip Brew", BeanVarietyId = 1, Value = 2},
-        new Coffee() {Id = 2, Style = "Drip Brew", BeanVarietyId = 2, Value = 2.3},
-        new Coffee() {Id = 3, Style = "Pour Over", BeanVarietyId = 2, Value = 2.1},
-        new Coffee() {Id = 4, Style = "Drip Brew", BeanVarietyId = 3, Value = 2.3},
-        new Coffee() {Id = 5, Style = "Drip Brew", BeanVarietyId = 4, Value = 2.5},
-        new Coffee() {Id = 6, Style = "Cold Brew", BeanVarietyId = 4, Value = 3},
-        new Coffee() {Id = 7, Style = "Espresso", BeanVarietyId = 4, Value = 2.7},
-        new Coffee() {Id = 8, Style = "Drip Brew", BeanVarietyId = 5, Value = 3.5},
-        new Coffee() {Id = 9, Style = "Espresso", BeanVarietyId = 5, Value = 3}
-    };
+        _connectionString = configuration.GetConnectionString("DefaultConnection");
+    }
+
+    private SqlConnection Connection
+    {
+        get { return new SqlConnection(_connectionString); }
+    }
 
     public List<Coffee> GetAll()
     {
-        return _coffees;
+        using (var conn = Connection)
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "select Id, Style, BeanVarietyId from Coffee";
+                var reader = cmd.ExecuteReader();
+                var coffees = new List<Coffee>();
+                while (reader.Read())
+                {
+                    var coffee = new Coffee()
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                        Style = reader.GetString(reader.GetOrdinal("Title")),
+                        BeanVarietyId = reader.GetInt32(reader.GetOrdinal("Id")),
+                    };
+                    coffees.Add(coffee);
+                }
+                reader.Close();
+                return coffees;
+            }
+        }
     }
 
     public Coffee Get(int id)
     {
-        return _coffees.Find(c => c.Id == id);
+        using (var conn = Connection)
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "select Id, Style, BeanVarietyId from Coffee where Id = @id";
+                cmd.Parameters.AddWithValue("@id", id);
+
+                var reader = cmd.ExecuteReader();
+
+                Coffee coffee = null;
+                if (reader.Read())
+                {
+                    coffee = new Coffee()
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                        Style = reader.GetString(reader.GetOrdinal("Title")),
+                        BeanVarietyId = reader.GetInt32(reader.GetOrdinal("Id")),
+                    };
+                }
+
+                reader.Close();
+                return coffee;
+            }
+        }
     }
 
     public void Add(Coffee coffee)
     {
-        _coffees.Add(coffee);
+        using (var conn = Connection)
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"insert into Coffee (Style, BeanVarietyId)
+                                    output inserted.id
+                                    values (@style, @beanVarietyId);";
+                cmd.Parameters.AddWithValue("@style", coffee.Style);
+                cmd.Parameters.AddWithValue("@beanVarietyId", coffee.BeanVarietyId);
+
+                coffee.Id = (int)cmd.ExecuteScalar();
+            }
+        }
     }
 
     public void Update(Coffee coffee)
     {
-        var foundCoffee = _coffees.Find(c => c.Id == coffee.Id);
+        using (var conn = Connection)
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                        UPDATE Coffee 
+                           SET Style = @style, 
+                               BeanVarietyId = @beanVarietyId
+                         WHERE Id = @id";
+                cmd.Parameters.AddWithValue("@id", coffee.Id);
+                cmd.Parameters.AddWithValue("@style", coffee.Style);
+                cmd.Parameters.AddWithValue("@beanVarietyId", coffee.BeanVarietyId);
 
-        foundCoffee = coffee;
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 
     public void Delete(int id)
     {
-        _coffees.Remove(Get(id));
+        using (var conn = Connection)
+        {
+            conn.Open();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM Coffee WHERE Id = @id";
+                cmd.Parameters.AddWithValue("@id", id);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }
