@@ -39,28 +39,29 @@ button.addEventListener("click", async () => {
     console.log(coffees)
 });
 
-// const submitBeanButton = document.querySelector("#submit-bean");
-// submitBeanButton.addEventListener("click", async () => {
-//     const beanName = document.getElementById("bName").value
-//     const beanRegion = document.getElementById("bRegion").value
-//     const beanNotes = document.getElementById("bNotes").value
-//     console.log('Name: ' + beanName)
+const submitBeanButton = document.querySelector("#submit-bean");
+submitBeanButton.addEventListener("click", async (event) => {
+    event.preventDefault()
 
-    // if (!beanName || !beanRegion) {
-    //     window.alert('Please include a valid Name and Region.')
-    // } else {
-    //     const newBeanObject = {
-    //         name: beanName,
-    //         region: beanRegion,
-    //         notes: beanNotes
-    //     }
+    const beanName = document.getElementById("bName").value
+    const beanRegion = document.getElementById("bRegion").value
+    const beanNotes = document.getElementById("bNotes").value
+
+    if (!beanName || !beanRegion) {
+        window.alert('Please include a valid Name and Region.')
+    } else {
+        const newBeanObject = {
+            name: beanName,
+            region: beanRegion,
+            notes: beanNotes
+        }
     
-    //     await fetch(beanUrl, {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify(newBeanObject)
-    //     })  
-    // }
-// });
+        await fetch(beanUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newBeanObject)
+        })  
+    }
+});
